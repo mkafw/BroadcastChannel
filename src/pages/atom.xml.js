@@ -1,16 +1,8 @@
+import { Feed } from 'feed'
 import * as cheerio from 'cheerio'
 import sanitizeHtml from 'sanitize-html'
 import { getEnv } from '../lib/env'
 import { getChannelInfo } from '../lib/telegram'
-
-function escapeXml(unsafe) {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
 
 function getMimeType(url, defaultType = 'application/octet-stream') {
   if (!url) {
@@ -41,6 +33,15 @@ function getMimeType(url, defaultType = 'application/octet-stream') {
   return mimeTypes[extension] || defaultType
 }
 
+function escapeXml(unsafe) {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 export async function GET(Astro) {
   const { SITE_URL } = Astro.locals
   const tag = Astro.url.searchParams.get('tag')
@@ -56,39 +57,27 @@ export async function GET(Astro) {
 
   const feedUrl = new URL(request.url)
   const siteUrl = url.toString()
-  const title = escapeXml(`${tag ? `${tag} | ` : ''}${channel.title}`)
-  const description = escapeXml(channel.description || '')
-  const updated = posts.length > 0 ? new Date(posts[0].datetime).toISOString() : new Date().toISOString()
 
-  let atomFeed = `<?xml version="1.0" encoding="utf-8"?>`
+  const feed = new Feed({
+    title: `${tag ? `${tag} | ` : ''}${channel.title}`,
+    description: channel.description || '',
+    id: siteUrl,
+    link: siteUrl,
+    language: 'zh-cn',
+    image: channel.avatar,
+    favicon: channel.avatar,
+    copyright: '',
+    updated: posts.length > 0 ? new Date(posts[0].datetime) : new Date(),
+    feedLinks: {
+      atom: feedUrl.toString(),
+    },
+  })
 
-  if (getEnv(import.meta.env, Astro, 'RSS_BEAUTIFY')) {
-    atomFeed += `<?xml-stylesheet type="text/xsl" href="/rss.xsl"?>`
-  }
-
-  atomFeed += `
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <title>${title}</title>
-  <link href="${escapeXml(feedUrl.toString())}" rel="self" type="application/atom+xml"/>
-  <link href="${escapeXml(siteUrl)}" rel="alternate" type="text/html"/>
-  <id>${escapeXml(siteUrl)}</id>
-  <updated>${updated}</updated>`
-
-  if (description) {
-    atomFeed += `
-  <subtitle>${description}</subtitle>`
-  }
-
-  if (channel.avatar) {
-    atomFeed += `
-  <icon>${escapeXml(channel.avatar)}</icon>
-  <logo>${escapeXml(channel.avatar)}</logo>`
-  }
+  // Store media links for each post to add later
+  const postMediaLinks = []
 
   for (const item of posts) {
     const postUrl = `${siteUrl}posts/${item.id}`
-    const postTitle = escapeXml(item.title || '')
-    const postDate = new Date(item.datetime).toISOString()
 
     const cleanContent = sanitizeHtml(item.content, {
       allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'video', 'audio']),
@@ -103,33 +92,26 @@ export async function GET(Astro) {
       },
     })
 
-    const summary = escapeXml(item.description || item.text?.substring(0, 200) || '')
-
-    atomFeed += `
-  <entry>
-    <title>${postTitle}</title>
-    <link href="${escapeXml(postUrl)}" rel="alternate" type="text/html"/>
-    <id>${escapeXml(postUrl)}</id>
-    <published>${postDate}</published>
-    <updated>${postDate}</updated>`
-
-    if (summary) {
-      atomFeed += `
-    <summary type="text">${summary}</summary>`
-    }
-
-    atomFeed += `
-    <content type="html"><![CDATA[${cleanContent}]]></content>`
+    feed.addItem({
+      title: item.title || '',
+      id: postUrl,
+      link: postUrl,
+      description: item.description || item.text?.substring(0, 200) || '',
+      content: cleanContent,
+      date: new Date(item.datetime),
+      published: new Date(item.datetime),
+      category: item.tags && item.tags.length > 0 ? item.tags.map(tagName => ({ name: tagName })) : undefined,
+    })
 
     // Extract media from content for enhanced link elements
     const $ = cheerio.load(item.content)
+    const mediaLinks = []
 
     // Add image links
     $('.tgme_widget_message_photo_wrap').each((_, photo) => {
-      const url = $(photo).attr('style')?.match(/url\(["'](.*?)["']/)?.[1]
-      if (url) {
-        atomFeed += `
-    <link href="${escapeXml(url)}" rel="image" type="${getMimeType(url, 'image/jpeg')}"/>`
+      const imageUrl = $(photo).attr('style')?.match(/url\(["'](.*?)["']/)?.[1]
+      if (imageUrl) {
+        mediaLinks.push(`    <link href="${escapeXml(imageUrl)}" rel="image" type="${getMimeType(imageUrl, 'image/jpeg')}"/>`)
       }
     })
 
@@ -137,17 +119,15 @@ export async function GET(Astro) {
     $('.tgme_widget_message_video_wrap video, .tgme_widget_message_roundvideo_wrap video').each((_, video) => {
       const src = $(video).attr('src')
       if (src) {
-        atomFeed += `
-    <link href="${escapeXml(src)}" rel="enclosure" type="${getMimeType(src, 'video/mp4')}"/>`
+        mediaLinks.push(`    <link href="${escapeXml(src)}" rel="enclosure" type="${getMimeType(src, 'video/mp4')}"/>`)
       }
     })
 
-    // Add audio links (voice messages and audio files)
+    // Add audio links
     $('audio').each((_, audio) => {
       const src = $(audio).attr('src')
       if (src) {
-        atomFeed += `
-    <link href="${escapeXml(src)}" rel="enclosure" type="${getMimeType(src, 'audio/mpeg')}"/>`
+        mediaLinks.push(`    <link href="${escapeXml(src)}" rel="enclosure" type="${getMimeType(src, 'audio/mpeg')}"/>`)
       }
     })
 
@@ -155,27 +135,33 @@ export async function GET(Astro) {
     $('.link_preview_image').each((_, img) => {
       const src = $(img).attr('src')
       if (src) {
-        atomFeed += `
-    <link href="${escapeXml(src)}" rel="preview" type="${getMimeType(src, 'image/jpeg')}"/>`
+        mediaLinks.push(`    <link href="${escapeXml(src)}" rel="preview" type="${getMimeType(src, 'image/jpeg')}"/>`)
       }
     })
 
-    // Add tags as categories
-    if (item.tags && item.tags.length > 0) {
-      for (const tagName of item.tags) {
-        atomFeed += `
-    <category term="${escapeXml(tagName)}"/>`
-      }
-    }
-
-    atomFeed += `
-  </entry>`
+    postMediaLinks.push({ id: postUrl, links: mediaLinks })
   }
 
-  atomFeed += `
-</feed>`
+  let atomXml = feed.atom1()
 
-  return new Response(atomFeed, {
+  // Add XSL stylesheet if RSS_BEAUTIFY is enabled
+  if (getEnv(import.meta.env, Astro, 'RSS_BEAUTIFY')) {
+    atomXml = atomXml.replace(
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<?xml version="1.0" encoding="utf-8"?>\n<?xml-stylesheet type="text/xsl" href="/rss.xsl"?>',
+    )
+  }
+
+  // Inject custom media links into each entry
+  for (const { id, links } of postMediaLinks) {
+    if (links.length > 0) {
+      const entryIdPattern = new RegExp(`(<id>${escapeXml(id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</id>)`, 'g')
+      const replacement = `$1\n${links.join('\n')}`
+      atomXml = atomXml.replace(entryIdPattern, replacement)
+    }
+  }
+
+  return new Response(atomXml, {
     headers: {
       'Content-Type': 'application/atom+xml; charset=utf-8',
       'Cache-Control': 'public, max-age=3600',
