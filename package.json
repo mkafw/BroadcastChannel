@@ -4,6 +4,9 @@
   "version": "0.1.8",
   "private": true,
   "packageManager": "pnpm@10.27.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -13,12 +16,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "postinstall": "test -d .git && simple-git-hooks || true",
-    
-    "🚀 Workers 部署命令": "========================================",
+    "deploy": "pnpm run build && wrangler deploy",
     "deploy:workers": "wrangler deploy",
-    "deploy": "npm run build && wrangler deploy",
     "dev:workers": "wrangler dev",
-    "preview:workers": "npm run build && wrangler dev"
+    "preview:workers": "pnpm run build && wrangler dev"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.14",
@@ -54,7 +55,7 @@
     "simple-git-hooks": "^2.13.1",
     "std-env": "^3.10.0",
     "typescript": "^5.9.3",
-    "wrangler": "^3.0.0"
+    "wrangler": "^3.100.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"
