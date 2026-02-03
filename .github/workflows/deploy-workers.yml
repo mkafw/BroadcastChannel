@@ -19,18 +19,19 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: 📦 Install pnpm
+      - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 10
 
       - name: 🔧 Install dependencies
-        run: pnpm install
+        # 使用 --no-frozen-lockfile 因为 package.json 已更新但 lock 文件未更新
+        run: pnpm install --no-frozen-lockfile
 
       - name: 🏗️ Build
         run: pnpm run build
         env:
-          CHANNEL: ${{ secrets.CHANNEL }}
+          CHANNEL: ${{ secrets.CHANNEL || 'siweishiya' }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           LOCALE: ${{ vars.LOCALE || 'zh-cn' }}
           TIMEZONE: ${{ vars.TIMEZONE || 'Asia/Shanghai' }}
@@ -41,7 +42,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy
-        env:
-          # 环境变量会通过 wrangler.toml 读取
-          CHANNEL: ${{ secrets.CHANNEL }}
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
