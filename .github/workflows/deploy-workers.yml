@@ -25,7 +25,6 @@ jobs:
           version: 10
 
       - name: 🔧 Install dependencies
-        # 使用 --no-frozen-lockfile 因为 package.json 已更新但 lock 文件未更新
         run: pnpm install --no-frozen-lockfile
 
       - name: 🏗️ Build
@@ -37,8 +36,7 @@ jobs:
           TIMEZONE: ${{ vars.TIMEZONE || 'Asia/Shanghai' }}
 
       - name: 🚀 Deploy to Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
