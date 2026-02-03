@@ -25,8 +25,7 @@ jobs:
           version: 10
 
       - name: 🔧 Install dependencies
-        # 暂时不使用 frozen-lockfile，因为 lock 文件还没更新
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: 🏗️ Build
         run: pnpm run build
