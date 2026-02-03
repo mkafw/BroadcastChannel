@@ -167,6 +167,10 @@ const navs = (getEnv(import.meta.env, Astro, 'NAVS') || '')
     <a href="#wrapper" id="back-to-top" aria-label="Back to top">
       <img {...backToTopIcon} alt="Back to Top" />
     </a>
+    
+    <!-- Q版紫金小公主桌宠 -->
+    <Fragment set:html={await Astro.slots.render('pet') || await fetch('/src/components/ChibiPet.html').then(r => r.text()).catch(() => '')} />
+    
     <Fragment set:html={FOOTER_INJECT} />
   </body>
 </html>
