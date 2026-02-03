@@ -1,0 +1,869 @@
+<!-- Q版紫金小萌宠 - 超可爱Chibi风格 -->
+<!-- 大脸小身体、腮红、星星眼、会发光 -->
+
+<div id="chibi-container">
+  <div id="chibi-pet" class="chibi-character">
+    <!-- 身体 -->
+    <div class="chibi-body">
+      <!-- 头 (大大的) -->
+      <div class="chibi-head">
+        <!-- 头发/装饰 -->
+        <div class="hair-back"></div>
+        <div class="hair-left"></div>
+        <div class="hair-right"></div>
+        
+        <!-- 皇冠 -->
+        <div class="crown">
+          <div class="crown-point"></div>
+          <div class="crown-point"></div>
+          <div class="crown-point"></div>
+          <div class="crown-jewel"></div>
+        </div>
+        
+        <!-- 脸部 -->
+        <div class="face">
+          <!-- 眼睛 (星星眼) -->
+          <div class="eye left">
+            <div class="sparkle"></div>
+            <div class="pupil"></div>
+            <div class="highlight"></div>
+          </div>
+          <div class="eye right">
+            <div class="sparkle"></div>
+            <div class="pupil"></div>
+            <div class="highlight"></div>
+          </div>
+          
+          <!-- 腮红 -->
+          <div class="blush left"></div>
+          <div class="blush right"></div>
+          
+          <!-- 嘴巴 -->
+          <div class="mouth">
+            <div class="mouth-inner"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 身体 (小小的) -->
+      <div class="chibi-torso">
+        <!-- 衣服 -->
+        <div class="dress"></div>
+        
+        <!-- 手 -->
+        <div class="arm left">
+          <div class="hand">✋</div>
+        </div>
+        <div class="arm right">
+          <div class="hand">✋</div>
+        </div>
+        
+        <!-- 脚 -->
+        <div class="leg left"></div>
+        <div class="leg right"></div>
+      </div>
+      
+      <!-- 翅膀 (透明小翅膀) -->
+      <div class="wings-container">
+        <div class="wing left"></div>
+        <div class="wing right"></div>
+      </div>
+      
+      <!-- 魔法棒 -->
+      <div class="wand">
+        <div class="wand-stick"></div>
+        <div class="wand-star">⭐</div>
+        <div class="wand-glow"></div>
+      </div>
+    </div>
+    
+    <!-- 悬浮光环 -->
+    <div class="halo"></div>
+    
+    <!-- 爱心特效 -->
+    <div class="hearts-container">
+      <div class="heart">💜</div>
+      <div class="heart">💛</div>
+      <div class="heart">✨</div>
+    </div>
+    
+    <!-- 地面阴影 -->
+    <div class="shadow"></div>
+  </div>
+  
+  <!-- 对话气泡 -->
+  <div id="chibi-bubble" class="bubble-q">
+    <div class="bubble-tail"></div>
+    <span id="chibi-text">主人好~ 💕</span>
+  </div>
+</div>
+
+<style>
+/* Q版容器 */
+#chibi-container {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 9999;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Q版角色整体 */
+#chibi-pet {
+  width: 120px;
+  height: 140px;
+  position: relative;
+  animation: chibi-float 2s ease-in-out infinite;
+}
+
+/* 浮动动画 - 轻轻弹跳 */
+@keyframes chibi-float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg); 
+  }
+  25% { 
+    transform: translateY(-8px) rotate(-2deg); 
+  }
+  50% { 
+    transform: translateY(-12px) rotate(0deg); 
+  }
+  75% { 
+    transform: translateY(-8px) rotate(2deg); 
+  }
+}
+
+/* 身体容器 */
+.chibi-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* ========== 头部 (大大的Q版头) ========== */
+.chibi-head {
+  width: 85px;
+  height: 75px;
+  background: linear-gradient(180deg, #FFE4EC 0%, #FFD6E0 100%);
+  border-radius: 50% 50% 45% 45%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  box-shadow: 
+    0 4px 15px rgba(107, 70, 193, 0.2),
+    inset 0 -3px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* 头发 */
+.hair-back {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95px;
+  height: 50px;
+  background: linear-gradient(180deg, #6B46C1 0%, #553C9A 100%);
+  border-radius: 50% 50% 30% 30%;
+  z-index: -1;
+}
+
+.hair-left, .hair-right {
+  position: absolute;
+  top: 15px;
+  width: 25px;
+  height: 40px;
+  background: linear-gradient(180deg, #6B46C1 0%, #553C9A 100%);
+  border-radius: 50%;
+}
+
+.hair-left {
+  left: -8px;
+  transform: rotate(-20deg);
+}
+
+.hair-right {
+  right: -8px;
+  transform: rotate(20deg);
+}
+
+/* 皇冠 */
+.crown {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 20px;
+  z-index: 15;
+}
+
+.crown-point {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 18px solid #D4AF37;
+}
+
+.crown-point:nth-child(1) { left: 0; }
+.crown-point:nth-child(2) { 
+  left: 50%; 
+  transform: translateX(-50%); 
+  border-bottom-width: 22px;
+}
+.crown-point:nth-child(3) { right: 0; }
+
+.crown-jewel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle, #9F7AEA 0%, #6B46C1 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(159, 122, 234, 0.8);
+}
+
+/* 脸部 */
+.face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* 眼睛 - 星星眼 */
+.eye {
+  position: absolute;
+  top: 25px;
+  width: 22px;
+  height: 22px;
+  background: white;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.eye.left { left: 15px; }
+.eye.right { right: 15px; }
+
+.pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(135deg, #6B46C1 0%, #D4AF37 100%);
+  border-radius: 50%;
+  animation: eye-shine 3s ease-in-out infinite;
+}
+
+@keyframes eye-shine {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.highlight {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+}
+
+.sparkle {
+  position: absolute;
+  top: -5px;
+  right: -3px;
+  font-size: 10px;
+  animation: sparkle-twinkle 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* 腮红 */
+.blush {
+  position: absolute;
+  top: 42px;
+  width: 18px;
+  height: 12px;
+  background: radial-gradient(ellipse, rgba(255, 182, 193, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.blush.left { left: 8px; }
+.blush.right { right: 8px; }
+
+/* 嘴巴 */
+.mouth {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 12px;
+  background: #FF6B9D;
+  border-radius: 0 0 20px 20px;
+  overflow: hidden;
+}
+
+.mouth-inner {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 6px;
+  background: #FF8FAB;
+  border-radius: 50% 50% 0 0;
+}
+
+/* ========== 身体 (小小的) ========== */
+.chibi-torso {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 45px;
+  z-index: 5;
+}
+
+/* 裙子 */
+.dress {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 55px;
+  height: 40px;
+  background: linear-gradient(180deg, 
+    rgba(107, 70, 193, 0.9) 0%, 
+    rgba(159, 122, 234, 0.8) 50%,
+    rgba(212, 175, 55, 0.6) 100%);
+  border-radius: 40% 40% 50% 50%;
+  box-shadow: 
+    0 4px 10px rgba(107, 70, 193, 0.3),
+    inset 0 -3px 8px rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(212, 175, 55, 0.4);
+}
+
+/* 手 */
+.arm {
+  position: absolute;
+  top: 8px;
+  width: 20px;
+  height: 30px;
+  z-index: 8;
+}
+
+.arm.left { 
+  left: -8px; 
+  transform: rotate(-30deg);
+}
+.arm.right { 
+  right: -8px; 
+  transform: rotate(30deg);
+}
+
+.hand {
+  font-size: 14px;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+}
+
+/* 脚 */
+.leg {
+  position: absolute;
+  bottom: -5px;
+  width: 12px;
+  height: 20px;
+  background: linear-gradient(180deg, #FFE4EC 0%, #FFD6E0 100%);
+  border-radius: 50%;
+}
+
+.leg.left { left: 10px; }
+.leg.right { right: 10px; }
+
+/* ========== 翅膀 ========== */
+.wings-container {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 60px;
+  z-index: 3;
+}
+
+.wing {
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 50px;
+  background: linear-gradient(135deg, 
+    rgba(212, 175, 55, 0.4) 0%, 
+    rgba(107, 70, 193, 0.3) 100%);
+  border: 2px solid rgba(212, 175, 55, 0.5);
+  border-radius: 0 80% 80% 0;
+  backdrop-filter: blur(2px);
+  animation: wing-flap 0.6s ease-in-out infinite;
+}
+
+.wing.left {
+  left: 0;
+  transform: scaleX(-1);
+  border-radius: 0 80% 80% 0;
+  transform-origin: right center;
+}
+
+.wing.right {
+  right: 0;
+  border-radius: 0 80% 80% 0;
+  transform-origin: left center;
+  animation-delay: 0.1s;
+}
+
+@keyframes wing-flap {
+  0%, 100% { transform: rotate(0deg) scaleY(1); }
+  50% { transform: rotate(15deg) scaleY(0.9); }
+}
+
+.wing.left {
+  animation-name: wing-flap-left;
+}
+
+@keyframes wing-flap-left {
+  0%, 100% { transform: scaleX(-1) rotate(0deg) scaleY(1); }
+  50% { transform: scaleX(-1) rotate(15deg) scaleY(0.9); }
+}
+
+/* ========== 魔法棒 ========== */
+.wand {
+  position: absolute;
+  bottom: 20px;
+  right: -10px;
+  width: 30px;
+  height: 50px;
+  z-index: 12;
+  animation: wand-wave 2s ease-in-out infinite;
+}
+
+@keyframes wand-wave {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+.wand-stick {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 35px;
+  background: linear-gradient(180deg, #D4AF37 0%, #B8860B 100%);
+  border-radius: 2px;
+}
+
+.wand-star {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px;
+  animation: star-twinkle 1s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%, 100% { transform: translateX(-50%) scale(1); filter: brightness(1); }
+  50% { transform: translateX(-50%) scale(1.2); filter: brightness(1.3); }
+}
+
+.wand-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.6) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.8; transform: translateX(-50%) scale(1.3); }
+}
+
+/* ========== 特效 ========== */
+
+/* 光环 */
+.halo {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 30px;
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  border-radius: 50%;
+  animation: halo-rotate 4s linear infinite;
+  z-index: 1;
+}
+
+@keyframes halo-rotate {
+  0% { transform: translateX(-50%) rotateX(70deg) rotateZ(0deg); }
+  100% { transform: translateX(-50%) rotateX(70deg) rotateZ(360deg); }
+}
+
+/* 爱心特效 */
+.hearts-container {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 60px;
+  pointer-events: none;
+}
+
+.heart {
+  position: absolute;
+  font-size: 16px;
+  opacity: 0;
+  animation: heart-float 3s ease-in-out infinite;
+}
+
+.heart:nth-child(1) {
+  left: 10px;
+  animation-delay: 0s;
+}
+
+.heart:nth-child(2) {
+  left: 35px;
+  animation-delay: 1s;
+}
+
+.heart:nth-child(3) {
+  left: 55px;
+  animation-delay: 2s;
+}
+
+@keyframes heart-float {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1);
+  }
+  80% {
+    opacity: 0.8;
+    transform: translateY(-40px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+}
+
+/* 地面阴影 */
+.shadow {
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 15px;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: shadow-breath 2s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes shadow-breath {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  50% { transform: translateX(-50%) scale(0.8); opacity: 0.7; }
+}
+
+/* ========== 对话气泡 ========== */
+.bubble-q {
+  position: absolute;
+  bottom: 150px;
+  right: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 240, 245, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border: 3px solid;
+  border-image: linear-gradient(135deg, #6B46C1 0%, #D4AF37 100%) 1;
+  border-radius: 25px;
+  padding: 14px 20px;
+  min-width: 160px;
+  max-width: 280px;
+  box-shadow: 
+    0 8px 32px rgba(107, 70, 193, 0.3),
+    0 0 20px rgba(212, 175, 55, 0.2);
+  opacity: 0;
+  transform: translateY(10px) scale(0.9);
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.bubble-q.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.bubble-tail {
+  position: absolute;
+  bottom: -12px;
+  right: 30px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 15px solid #D4AF37;
+}
+
+#chibi-text {
+  color: #6B46C1;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.4;
+}
+
+/* ========== 交互效果 ========== */
+
+/* 悬停 - 开心跳动 */
+#chibi-container:hover #chibi-pet {
+  animation: chibi-happy 0.5s ease;
+}
+
+@keyframes chibi-happy {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+  75% { transform: scale(1.05) rotate(-3deg); }
+}
+
+/* 点击 - 爱心爆发 */
+#chibi-pet.clicked {
+  animation: chibi-love 0.6s ease;
+}
+
+@keyframes chibi-love {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* 点击时的爱心爆发效果 */
+.love-explosion {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.love-particle {
+  position: absolute;
+  font-size: 20px;
+  animation: love-burst 1s ease-out forwards;
+}
+
+@keyframes love-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1.2) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), calc(var(--ty) - 50px)) scale(0.5) rotate(360deg);
+  }
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 768px) {
+  #chibi-container {
+    bottom: 20px;
+    right: 15px;
+    transform: scale(0.75);
+    transform-origin: bottom right;
+  }
+  
+  .bubble-q {
+    right: 5px;
+    min-width: 140px;
+    max-width: 220px;
+    padding: 10px 14px;
+  }
+  
+  #chibi-text {
+    font-size: 13px;
+  }
+}
+
+/* 眨眼动画增强 */
+#chibi-container:hover .eye .pupil {
+  animation: eye-sparkle 0.5s ease;
+}
+
+@keyframes eye-sparkle {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.3); }
+}
+</style>
+
+<script>
+(function() {
+  const container = document.getElementById('chibi-container');
+  const pet = document.getElementById('chibi-pet');
+  const bubble = document.getElementById('chibi-bubble');
+  const text = document.getElementById('chibi-text');
+  
+  // Q版萌宠台词
+  const messages = [
+    "主人好~ 💕",
+    "人家超可爱的对吧？ ✨",
+    "紫金魔法，变！~ 🔮",
+    "要抱抱~ 🤗",
+    "今天也要闪闪发光哦 ⭐",
+    "我的小皇冠好看吗？ 👑",
+    "魔法棒给你施展好运 ✨",
+    "人家会飞哦，看翅膀 🦋",
+    "脸颊红红的是腮红啦 🎀",
+    "点击我可以互动呢 💝",
+    "主人是最棒的！ 💜",
+    "要开心每一天哦 🌟",
+    "魔法少女登场~ ✨",
+    "紫金配色超奢华的对吧 👑",
+    "人家会一直陪着主人的 💕"
+  ];
+  
+  // 显示消息
+  function showMessage(msg) {
+    text.textContent = msg || messages[Math.floor(Math.random() * messages.length)];
+    bubble.classList.add('show');
+    
+    // 3秒后隐藏
+    setTimeout(() => {
+      bubble.classList.remove('show');
+    }, 4000);
+  }
+  
+  // 页面加载后欢迎
+  setTimeout(() => {
+    showMessage("主人好~ 我是紫金小公主 💕✨");
+  }, 2000);
+  
+  // 点击事件 - 爱心爆发
+  container.addEventListener('click', function(e) {
+    pet.classList.add('clicked');
+    showMessage();
+    
+    // 创建爱心爆发效果
+    createLoveExplosion(e.clientX, e.clientY);
+    
+    // 移除动画类
+    setTimeout(() => {
+      pet.classList.remove('clicked');
+    }, 600);
+  });
+  
+  // 爱心爆发效果
+  function createLoveExplosion(x, y) {
+    const emojis = ['💜', '💛', '💖', '✨', '⭐', '🦋'];
+    const container = document.getElementById('chibi-container');
+    
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'love-particle';
+      particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = 80 + Math.random() * 40;
+      const tx = Math.cos(angle) * distance + 'px';
+      const ty = Math.sin(angle) * distance + 'px';
+      
+      particle.style.setProperty('--tx', tx);
+      particle.style.setProperty('--ty', ty);
+      particle.style.left = '50%';
+      particle.style.top = '50%';
+      particle.style.animationDelay = (i * 0.05) + 's';
+      
+      const explosion = document.createElement('div');
+      explosion.className = 'love-explosion';
+      explosion.appendChild(particle);
+      
+      container.appendChild(explosion);
+      
+      setTimeout(() => {
+        explosion.remove();
+      }, 1000);
+    }
+  }
+  
+  // 眼睛跟随鼠标
+  document.addEventListener('mousemove', function(e) {
+    const eyes = document.querySelectorAll('.eye');
+    const petRect = pet.getBoundingClientRect();
+    const petCenterX = petRect.left + petRect.width / 2;
+    const petCenterY = petRect.top + petRect.height / 2;
+    
+    const angle = Math.atan2(e.clientY - petCenterY, e.clientX - petCenterX);
+    const distance = Math.min(3, Math.hypot(e.clientX - petCenterX, e.clientY - petCenterY) / 100);
+    
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+    
+    eyes.forEach(eye => {
+      const pupil = eye.querySelector('.pupil');
+      if (pupil) {
+        pupil.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+      }
+    });
+  });
+  
+  // 每隔20-40秒随机说话
+  function randomSpeak() {
+    const delay = 20000 + Math.random() * 20000; // 20-40秒
+    setTimeout(() => {
+      if (Math.random() > 0.5) {
+        showMessage();
+      }
+      randomSpeak();
+    }, delay);
+  }
+  
+  randomSpeak();
+  
+  // 鼠标悬停时的特殊反应
+  container.addEventListener('mouseenter', function() {
+    if (Math.random() > 0.7) {
+      showMessage("哇~ 主人来啦！💕");
+    }
+  });
+  
+})();
+</script>
