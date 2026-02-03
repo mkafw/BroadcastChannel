@@ -16,10 +16,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "postinstall": "test -d .git && simple-git-hooks || true",
-    "deploy": "wrangler deploy",
-    "deploy:full": "pnpm run build && wrangler deploy",
+    "deploy": "npx wrangler deploy",
+    "deploy:full": "pnpm run build && npx wrangler deploy",
     "dev:workers": "wrangler dev",
-    "build:deploy": "pnpm run build && wrangler deploy"
+    "build:deploy": "pnpm run build && npx wrangler deploy"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.14",
