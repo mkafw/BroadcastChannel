@@ -1,0 +1,599 @@
+---
+import Layout from '../layouts/base.astro'
+import { getEnv } from '../lib/env'
+
+const { SITE_URL } = Astro.locals
+const channel = Astro.props.channel
+
+// 获取环境变量
+const GITHUB_OWNER = getEnv(import.meta.env, Astro, 'GITHUB_OWNER') || 'mkafw'
+const GITHUB_REPO = getEnv(import.meta.env, Astro, 'GITHUB_REPO') || 'BroadcastChannel'
+const GITHUB_TOKEN = getEnv(import.meta.env, Astro, 'GITHUB_TOKEN')
+
+// RSS 订阅源数据（可以从 GitHub Issues 读取）
+let subscriptions = []
+
+try {
+  if (GITHUB_TOKEN) {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?labels=rss-subscription&state=open`,
+      {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      }
+    )
+    
+    if (response.ok) {
+      const issues = await response.json()
+      subscriptions = issues.map(issue => {
+        try {
+          const body = JSON.parse(issue.body)
+          return {
+            id: issue.number,
+            title: body.title || issue.title,
+            url: body.url,
+            feedUrl: body.feedUrl,
+            description: body.description || '',
+            category: body.category || '未分类',
+            lastUpdated: body.lastUpdated,
+            issueUrl: issue.html_url
+          }
+        } catch (e) {
+          return null
+        }
+      }).filter(Boolean)
+    }
+  }
+} catch (error) {
+  console.error('Failed to fetch subscriptions:', error)
+}
+
+// 分类统计
+const categories = subscriptions.reduce((acc, sub) => {
+  acc[sub.category] = (acc[sub.category] || 0) + 1
+  return acc
+}, {})
+---
+
+<Layout channel={channel}>
+  <div class="rss-subscriptions-page">
+    <div class="page-header">
+      <h1 class="page-title">📡 RSS 订阅管理</h1>
+      <p class="page-description">订阅其他博客的 RSS 源，随时获取最新文章</p>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-number">{subscriptions.length}</span>
+        <span class="stat-label">订阅源</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">{Object.keys(categories).length}</span>
+        <span class="stat-label">分类</span>
+      </div>
+    </div>
+
+    <div class="actions-bar">
+      <a 
+        href={`https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues/new?labels=rss-subscription&template=rss-subscription.md`}
+        class="btn btn-primary"
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="btn-icon">➕</span>
+        添加订阅
+      </a>
+      <button class="btn btn-secondary" onclick="exportOPML()">
+        <span class="btn-icon">📥</span>
+        导出 OPML
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('opml-import').click()">
+        <span class="btn-icon">📤</span>
+        导入 OPML
+      </button>
+      <input 
+        type="file" 
+        id="opml-import" 
+        accept=".opml,.xml" 
+        style="display: none;"
+        onchange="importOPML(this)"
+      />
+    </div>
+
+    <div class="subscriptions-container">
+      {subscriptions.length === 0 ? (
+        <div class="empty-state">
+          <div class="empty-icon">📭</div>
+          <h3>暂无订阅</h3>
+          <p>点击"添加订阅"按钮，开始订阅你喜欢的博客</p>
+          <div class="empty-hint">
+            <p>💡 提示：订阅会通过 GitHub Issues 存储</p>
+          </div>
+        </div>
+      ) : (
+        <div class="subscriptions-list">
+          {Object.entries(
+            subscriptions.reduce((acc, sub) => {
+              if (!acc[sub.category]) acc[sub.category] = []
+              acc[sub.category].push(sub)
+              return acc
+            }, {})
+          ).map(([category, items]) => (
+            <div class="category-section">
+              <h2 class="category-title">
+                <span class="category-icon">📁</span>
+                {category}
+                <span class="category-count">({items.length})</span>
+              </h2>
+              <div class="category-items">
+                {items.map(sub => (
+                  <div class="subscription-card" data-id={sub.id}>
+                    <div class="card-header">
+                      <h3 class="card-title">
+                        <a href={sub.url} target="_blank" rel="noopener">
+                          {sub.title}
+                        </a>
+                      </h3>
+                      <div class="card-actions">
+                        <a 
+                          href={sub.feedUrl} 
+                          class="action-btn feed-btn"
+                          title="RSS Feed"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          <span class="action-icon">📶</span>
+                        </a>
+                        <a 
+                          href={sub.issueUrl}
+                          class="action-btn edit-btn"
+                          title="编辑"
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          <span class="action-icon">✏️</span>
+                        </a>
+                      </div>
+                    </div>
+                    <p class="card-description">{sub.description}</p>
+                    <div class="card-meta">
+                      <span class="meta-item">
+                        <span class="meta-icon">🔗</span>
+                        <a href={sub.url} target="_blank" rel="noopener">
+                          {new URL(sub.url).hostname}
+                        </a>
+                      </span>
+                      {sub.lastUpdated && (
+                        <span class="meta-item">
+                          <span class="meta-icon">🕐</span>
+                          更新于 {new Date(sub.lastUpdated).toLocaleDateString('zh-CN')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div class="help-section">
+      <h3>📝 使用说明</h3>
+      <div class="help-content">
+        <div class="help-item">
+          <h4>如何添加订阅？</h4>
+          <p>点击"添加订阅"按钮，会跳转到 GitHub Issues 页面。按照模板填写 RSS 源信息即可。</p>
+        </div>
+        <div class="help-item">
+          <h4>订阅数据存储在哪里？</h4>
+          <p>所有订阅数据都存储在 GitHub Issues 中，标签为 <code>rss-subscription</code>。</p>
+        </div>
+        <div class="help-item">
+          <h4>什么是 OPML？</h4>
+          <p>OPML 是 RSS 订阅列表的标准格式。你可以导出 OPML 文件备份，或从其他阅读器导入。</p>
+        </div>
+        <div class="help-item">
+          <h4>本博客的 RSS 地址</h4>
+          <code class="rss-url">{SITE_URL}rss.xml</code>
+          <button class="copy-btn" onclick="copyRSSUrl()">复制</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  // 导出 OPML
+  function exportOPML() {
+    const subscriptions = Array.from(document.querySelectorAll('.subscription-card')).map(card => {
+      return {
+        title: card.querySelector('.card-title a').textContent,
+        xmlUrl: card.querySelector('.feed-btn').href,
+        htmlUrl: card.querySelector('.card-title a').href,
+        category: card.closest('.category-section').querySelector('.category-title').textContent.replace('📁', '').trim()
+      }
+    })
+
+    const opml = `<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head>
+    <title>我的 RSS 订阅</title>
+    <dateCreated>${new Date().toUTCString()}</dateCreated>
+  </head>
+  <body>
+${subscriptions.map(sub => `    <outline type="rss" text="${sub.title}" title="${sub.title}" xmlUrl="${sub.xmlUrl}" htmlUrl="${sub.htmlUrl}" category="${sub.category}"/>`).join('\n')}
+  </body>
+</opml>`
+
+    const blob = new Blob([opml], { type: 'application/xml' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rss-subscriptions-${new Date().toISOString().split('T')[0]}.opml`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // 导入 OPML
+  function importOPML(input) {
+    const file = input.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      const content = e.target.result
+      alert('OPML 文件已读取，请在新打开的页面中手动添加订阅。')
+      // 这里可以解析 OPML 并引导用户批量添加
+      console.log('OPML content:', content)
+    }
+    reader.readAsText(file)
+  }
+
+  // 复制 RSS URL
+  function copyRSSUrl() {
+    const url = document.querySelector('.rss-url').textContent
+    navigator.clipboard.writeText(url).then(() => {
+      alert('RSS 地址已复制到剪贴板！')
+    })
+  }
+</script>
+
+<style>
+  .rss-subscriptions-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .page-description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+  }
+
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+
+  .stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #c9a227;
+  }
+
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .actions-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #8b5cf6, #c9a227);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--text-primary);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(139, 92, 246, 0.3);
+  }
+
+  .btn-icon {
+    font-size: 1.2rem;
+  }
+
+  .subscriptions-container {
+    margin-bottom: 40px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(26, 22, 46, 0.4);
+    border-radius: 16px;
+    border: 1px dashed rgba(139, 92, 246, 0.3);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .empty-state h3 {
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+  }
+
+  .empty-hint {
+    padding: 15px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .category-section {
+    margin-bottom: 30px;
+  }
+
+  .category-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.3rem;
+    color: var(--text-light);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .category-icon {
+    font-size: 1.2rem;
+  }
+
+  .category-count {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: normal;
+  }
+
+  .category-items {
+    display: grid;
+    gap: 15px;
+  }
+
+  .subscription-card {
+    background: rgba(26, 22, 46, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .subscription-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+
+  .card-title a {
+    color: var(--text-light);
+    text-decoration: none;
+  }
+
+  .card-title a:hover {
+    color: #c9a227;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: rgba(139, 92, 246, 0.2);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .action-btn:hover {
+    background: rgba(139, 92, 246, 0.4);
+    transform: scale(1.1);
+  }
+
+  .card-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .meta-item a {
+    color: #a090c0;
+    text-decoration: none;
+  }
+
+  .meta-item a:hover {
+    color: #c9a227;
+  }
+
+  .help-section {
+    background: rgba(26, 22, 46, 0.4);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    padding: 25px;
+  }
+
+  .help-section h3 {
+    color: var(--text-light);
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+  }
+
+  .help-content {
+    display: grid;
+    gap: 20px;
+  }
+
+  .help-item h4 {
+    color: #c9a227;
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+
+  .help-item p {
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .help-item code {
+    background: rgba(139, 92, 246, 0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+  }
+
+  .rss-url {
+    display: inline-block;
+    background: rgba(15, 12, 30, 0.8);
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-right: 10px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #c9a227;
+  }
+
+  .copy-btn {
+    padding: 8px 16px;
+    background: rgba(139, 92, 246, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .copy-btn:hover {
+    background: rgba(139, 92, 246, 0.5);
+  }
+
+  @media (max-width: 768px) {
+    .stats-bar {
+      gap: 20px;
+    }
+
+    .actions-bar {
+      flex-direction: column;
+    }
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .card-header {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-meta {
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+</style>
