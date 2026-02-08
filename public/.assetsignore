@@ -1,0 +1,2 @@
+# Ignore worker script in assets
+_worker.js
