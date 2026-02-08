@@ -19,11 +19,3 @@ COMMENTS = "true"
 REACTIONS = "true"
 RSS_BEAUTIFY = "true"
 
-# 可选：添加自定义域名
-# [[routes]]
-# pattern = "blog.yourdomain.com/*"
-# custom_domain = true
-
-# Workers 限制
-[limits]
-cpu_ms = 30000

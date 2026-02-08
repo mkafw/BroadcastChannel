@@ -12,7 +12,7 @@ const afterCursor = posts[0]?.id
 // const cursor = +Astro.params.cursor
 ---
 
-<Layout channel={channel} id="main-container">
+<Layout channel={channel} allPosts={posts} id="main-container">
   <slot name="header">
     <Header channel={channel} />
   </slot>
