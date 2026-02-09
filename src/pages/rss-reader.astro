@@ -1,0 +1,288 @@
+---
+import Layout from '../layouts/base.astro'
+import { getEnv } from '../lib/env'
+import { fetchAllRSSFeeds } from '../lib/rss-fetcher'
+
+const { SITE_URL } = Astro.locals
+const channel = Astro.props.channel
+
+// 获取环境变量
+const GITHUB_OWNER = getEnv(import.meta.env, Astro, 'GITHUB_OWNER') || 'mkafw'
+const GITHUB_REPO = getEnv(import.meta.env, Astro, 'GITHUB_REPO') || 'BroadcastChannel'
+const GITHUB_TOKEN = getEnv(import.meta.env, Astro, 'GITHUB_TOKEN')
+
+// 从 GitHub Issues 获取订阅列表
+let subscriptions = []
+let articles = []
+
+if (GITHUB_TOKEN) {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?labels=rss-subscription&state=open`,
+      {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      }
+    )
+    
+    if (response.ok) {
+      const issues = await response.json()
+      subscriptions = issues.map(issue => {
+        try {
+          const body = JSON.parse(issue.body)
+          return {
+            id: issue.number,
+            title: body.title || issue.title,
+            url: body.url,
+            feedUrl: body.feedUrl,
+            description: body.description || '',
+            category: body.category || '未分类'
+          }
+        } catch (e) {
+          return null
+        }
+      }).filter(Boolean)
+      
+      // 抓取所有 RSS 文章
+      articles = await fetchAllRSSFeeds(subscriptions)
+    }
+  } catch (error) {
+    console.error('Failed to fetch RSS feeds:', error)
+  }
+}
+
+// 按日期分组
+const groupedArticles = articles.reduce((acc, article) => {
+  const date = new Date(article.pubDate).toLocaleDateString('zh-CN')
+  if (!acc[date]) acc[date] = []
+  acc[date].push(article)
+  return acc
+}, {})
+---
+
+<Layout channel={channel}>
+  <div class="rss-reader-page">
+    <div class="page-header">
+      <h1 class="page-title">📰 RSS 阅读器</h1>
+      <p class="page-description">
+        已订阅 {subscriptions.length} 个源，共 {articles.length} 篇文章
+      </p>
+    </div>
+
+    <div class="actions-bar">
+      <a 
+        href={`https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues/new?labels=rss-subscription&template=rss-subscription.md`}
+        class="btn btn-primary"
+        target="_blank"
+        rel="noopener"
+      >
+        <span class="btn-icon">➕</span>
+        添加订阅
+      </a>
+      <a href="/rss-subscriptions" class="btn btn-secondary">
+        <span class="btn-icon">📋</span>
+        管理订阅
+      </a>
+    </div>
+
+    {articles.length === 0 ? (
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>暂无文章</h3>
+        <p>还没有抓取到 RSS 文章，请：</p>
+        <ul class="help-list">
+          <li>确保已添加 RSS 订阅源</li>
+          <li>检查 GITHUB_TOKEN 是否配置正确</li>
+          <li>刷新页面重新加载</li>
+        </ul>
+      </div>
+    ) : (
+      <div class="articles-container">
+        {Object.entries(groupedArticles).map(([date, dayArticles]) => (
+          <div class="date-group">
+            <h2 class="date-title">{date}</h2>
+            <div class="articles-list">
+              {dayArticles.map(article => (
+                <article class="article-card">
+                  <div class="article-header">
+                    <span class="article-source">{article.source}</span>
+                    <span class="article-category">{article.category}</span>
+                  </div>
+                  <h3 class="article-title">
+                    <a href={article.link} target="_blank" rel="noopener">
+                      {article.title}
+                    </a>
+                  </h3>
+                  <p class="article-description">
+                    {article.description?.replace(/<[^>]*>/g, '').slice(0, 200)}...
+                  </p>
+                  <div class="article-footer">
+                    <span class="article-author">{article.author || '未知作者'}</span>
+                    <span class="article-time">
+                      {new Date(article.pubDate).toLocaleTimeString('zh-CN')}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</Layout>
+
+<style>
+  .rss-reader-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .page-title {
+    font-size: 2rem;
+    color: var(--text-light);
+    margin-bottom: 10px;
+  }
+
+  .page-description {
+    color: var(--text-secondary);
+  }
+
+  .actions-bar {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #8b5cf6, #c9a227);
+    color: white;
+  }
+
+  .btn-secondary {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--text-primary);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: rgba(26, 22, 46, 0.4);
+    border-radius: 16px;
+    border: 1px dashed rgba(139, 92, 246, 0.3);
+  }
+
+  .empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .help-list {
+    text-align: left;
+    display: inline-block;
+    color: var(--text-secondary);
+  }
+
+  .date-group {
+    margin-bottom: 40px;
+  }
+
+  .date-title {
+    font-size: 1.2rem;
+    color: #c9a227;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  }
+
+  .articles-list {
+    display: grid;
+    gap: 20px;
+  }
+
+  .article-card {
+    background: rgba(26, 22, 46, 0.5);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .article-card:hover {
+    border-color: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .article-header {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .article-source {
+    background: rgba(139, 92, 246, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  .article-category {
+    background: rgba(201, 162, 39, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  .article-title {
+    font-size: 1.2rem;
+    margin: 0 0 10px 0;
+  }
+
+  .article-title a {
+    color: var(--text-light);
+    text-decoration: none;
+  }
+
+  .article-title a:hover {
+    color: #c9a227;
+  }
+
+  .article-description {
+    color: var(--text-secondary);
+    margin: 0 0 15px 0;
+    line-height: 1.6;
+  }
+
+  .article-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+</style>
