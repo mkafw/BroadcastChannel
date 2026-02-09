@@ -42,8 +42,10 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: 🔐 Set Secrets
-        if: ${{ secrets.TG_BOT_TOKEN != '' }}
-        run: echo "${{ secrets.TG_BOT_TOKEN }}" | npx wrangler@4 secret put TG_BOT_TOKEN --name blogbote
+        run: |
+          if [ -n "${{ secrets.TG_BOT_TOKEN }}" ]; then
+            echo "${{ secrets.TG_BOT_TOKEN }}" | npx wrangler@4 secret put TG_BOT_TOKEN --name blogbote
+          fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
